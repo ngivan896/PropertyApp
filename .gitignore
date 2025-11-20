@@ -1,0 +1,15 @@
+## Build outputs
+bin/
+obj/
+
+## User secrets
+.vs/
+*.user
+
+## Environment config
+.env
+
+## Misc
+*.DS_Store
+Thumbs.db
+

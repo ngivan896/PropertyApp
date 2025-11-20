@@ -1,0 +1,98 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - PropertyWeb</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/app.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/PropertyWeb.styles.css" asp-append-version="true" />
+</head>
+<body class="app_shell">
+    <header class="app_header">
+        <nav class="navbar navbar-expand-md navbar-light py-3">
+            <div class="container">
+                <a class="navbar-brand app_brand" asp-area="" asp-controller="Home" asp-action="Index">
+                    Property<span style="font-weight:400;color:#111827;">App</span>
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#primaryNav"
+                        aria-controls="primaryNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="primaryNav">
+                    <ul class="navbar-nav ms-auto align-items-md-center gap-md-3">
+                        <li class="nav-item">
+                            <a class="nav-link" data-nav="home" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-nav="about" href="#about">About us</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-nav="features" href="#features">Features</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-nav="services" href="#services">Services</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-nav="contact" href="#contact">Contact</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="btn btn-sm btn-outline-secondary" href="#">Log in</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="btn btn-sm btn-success" href="#">Get in touch</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <main class="app_content">
+        @RenderBody()
+    </main>
+
+    <footer class="app_footer">
+        <div class="footer_grid">
+            <div class="footer_brand">
+                <p class="footer_logo">PropertyApp</p>
+                <p class="text-muted small">Designed for transparent property operations across owners, admins, and technicians.</p>
+            </div>
+            <div>
+                <p class="footer_heading">Product</p>
+                <ul>
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#services">Automation</a></li>
+                    <li><a href="#contact">Pricing</a></li>
+                </ul>
+            </div>
+            <div>
+                <p class="footer_heading">Resources</p>
+                <ul>
+                    <li><a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a></li>
+                    <li><a href="mailto:team@propertyapp.io">Support</a></li>
+                    <li><a href="#">Status</a></li>
+                </ul>
+            </div>
+            <div class="footer_cta">
+                <p class="footer_heading">Get in touch</p>
+                <p class="small text-muted mb-2">Ready to deploy in under 4 weeks? Let's align on your MVP scope.</p>
+                <a class="btn btn-success btn-sm" href="mailto:team@propertyapp.io">Book a workshop</a>
+            </div>
+        </div>
+        <div class="footer_bottom">
+            <span>&copy; 2025 PropertyApp</span>
+            <div class="footer_social">
+                <a href="#">LinkedIn</a>
+                <a href="#">Twitter</a>
+                <a href="#">Xing</a>
+            </div>
+        </div>
+    </footer>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/app.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
