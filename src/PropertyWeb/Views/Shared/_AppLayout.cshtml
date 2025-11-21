@@ -1,0 +1,73 @@
+@{
+    Layout = null;
+    var userName = User.Identity?.Name ?? "User";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - PropertyApp</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/app.css" asp-append-version="true" />
+</head>
+<body class="app_shell">
+    <header class="app_header">
+        <nav class="navbar navbar-expand-md navbar-light border-bottom">
+            <div class="container">
+                <a class="navbar-brand app_brand" asp-controller="Dashboard" asp-action="Index">
+                    Property<span style="font-weight:400;color:#111827;">App</span>
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#appNav"
+                        aria-controls="appNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="appNav">
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Dashboard" asp-action="Index">Overview</a>
+                        </li>
+                        @if (User.IsInRole("admin"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Admin" asp-action="Index">Users</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Admin" asp-action="Tickets">Tickets</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Admin" asp-action="Properties">Properties</a>
+                            </li>
+                        }
+                    </ul>
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="text-muted small">Hello, @userName</span>
+                        <form asp-controller="Account" asp-action="Logout" method="post" class="mb-0">
+                            <button type="submit" class="btn btn-outline-secondary btn-sm">Log out</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="app_content">
+        @RenderBody()
+    </main>
+
+    <footer class="app_footer">
+        <div class="footer_bottom">
+            <span>&copy; 2025 PropertyApp</span>
+            <span class="text-muted small">Internal management console</span>
+        </div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
+
+

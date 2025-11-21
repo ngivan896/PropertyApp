@@ -1,0 +1,51 @@
+@model PropertyWeb.Models.AdminCreateUserViewModel
+
+@{
+    ViewData["Title"] = "Create user";
+    Layout = "_AppLayout";
+}
+
+<div class="container py-5">
+    <h1 class="h4 mb-4">Create user</h1>
+
+    <form asp-action="CreateUser" method="post" class="col-md-6">
+        <div class="mb-3">
+            <label asp-for="UserName" class="form-label">Full name</label>
+            <input asp-for="UserName" class="form-control" />
+            <span asp-validation-for="UserName" class="text-danger small"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Email" class="form-label">Email</label>
+            <input asp-for="Email" class="form-control" />
+            <span asp-validation-for="Email" class="text-danger small"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Password" class="form-label">Password</label>
+            <input asp-for="Password" class="form-control" type="password" />
+            <span asp-validation-for="Password" class="text-danger small"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Role" class="form-label">Role</label>
+            <select asp-for="Role" class="form-select">
+                <option value="owner">Owner</option>
+                <option value="worker">Worker</option>
+                <option value="admin">Admin</option>
+            </select>
+            <span asp-validation-for="Role" class="text-danger small"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Phone" class="form-label">Phone (optional)</label>
+            <input asp-for="Phone" class="form-control" />
+            <span asp-validation-for="Phone" class="text-danger small"></span>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Create</button>
+        <a asp-action="Index" class="btn btn-link">Back to list</a>
+    </form>
+</div>
+
+

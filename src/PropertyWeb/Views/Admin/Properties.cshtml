@@ -1,0 +1,44 @@
+@model IEnumerable<PropertyWeb.Models.Property_record>
+
+@{
+    ViewData["Title"] = "Properties";
+    Layout = "_AppLayout";
+}
+
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h4 mb-1">Properties</h1>
+            <p class="text-muted mb-0">View and manage all registered properties.</p>
+        </div>
+        <a asp-action="CreateProperty" class="btn btn-primary btn-sm">Add property</a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <table class="table table-sm table-striped align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Created</th>
+                        <th>Address</th>
+                        <th>Owner</th>
+                        <th>Type</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var p in Model)
+                {
+                    <tr>
+                        <td>@p.Created_at.ToString("yyyy-MM-dd HH:mm")</td>
+                        <td>@p.Address_line @if (!string.IsNullOrWhiteSpace(p.Unit_label)) { @($" (Unit {p.Unit_label})") }</td>
+                        <td>@p.Owner?.User_name ?? "-"</td>
+                        <td>@p.Property_type ?? "-"</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+

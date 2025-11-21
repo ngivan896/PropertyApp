@@ -1,0 +1,57 @@
+@model PropertyWeb.Models.AdminEditTicketViewModel
+
+@{
+    ViewData["Title"] = "Edit ticket";
+    Layout = "_AppLayout";
+}
+
+<div class="container py-5">
+    <h1 class="h4 mb-3">Edit ticket</h1>
+
+    <div class="row g-4">
+        <div class="col-lg-5">
+            <div class="card shadow-sm mb-3">
+                <div class="card-body">
+                    <p class="mb-2"><strong>Title</strong><br />@Model.Title</p>
+                    <p class="mb-2"><strong>Owner</strong><br />@Model.OwnerName ?? "-"</p>
+                    <p class="mb-0"><strong>Property</strong><br />@Model.PropertyAddress ?? "-"</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-7">
+            <form asp-action="EditTicket" method="post">
+                <input type="hidden" asp-for="Id" />
+
+                <div class="mb-3">
+                    <label asp-for="Status" class="form-label">Status</label>
+                    <select asp-for="Status" class="form-select"
+                            asp-items="Html.GetEnumSelectList<PropertyWeb.Models.Ticket_status>()">
+                    </select>
+                    <div class="form-text">
+                        Use <strong>In_progress</strong> when work has started, <strong>Completed</strong> when finished, and <strong>Closed</strong> when the ticket is archived.
+                    </div>
+                    <span asp-validation-for="Status" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="Assigned_user_id" class="form-label">Assign to worker</label>
+                    <select asp-for="Assigned_user_id" class="form-select">
+                        <option value="">-- Unassigned --</option>
+                        @foreach (var w in Model.WorkerOptions)
+                        {
+                            <option value="@w.Id">@w.User_name (@w.Email)</option>
+                        }
+                    </select>
+                    <div class="form-text">
+                        Only users with the <strong>worker</strong> role appear here.
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary me-2">Save changes</button>
+                <a asp-action="Tickets" class="btn btn-outline-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+

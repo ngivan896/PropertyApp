@@ -1,0 +1,71 @@
+@model IEnumerable<PropertyWeb.Models.Repair_ticket>
+
+@{
+    ViewData["Title"] = "Tickets";
+    Layout = "_AppLayout";
+}
+
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h1 class="h4 mb-1">Tickets</h1>
+            <p class="text-muted mb-0">
+                @ViewBag.TotalTickets total · @ViewBag.OpenTickets open · @ViewBag.CompletedTickets completed · @ViewBag.ClosedTickets closed
+            </p>
+        </div>
+    </div>
+
+    @if (TempData["TicketUpdated"] is string msg)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @msg
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <table class="table table-sm table-striped align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Created</th>
+                        <th>Title</th>
+                        <th>Status</th>
+                        <th>Owner</th>
+                        <th>Assigned to</th>
+                        <th>Property</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var ticket in Model)
+                {
+                    var status = ticket.Status.ToString();
+                    var statusClass = status switch
+                    {
+                        nameof(PropertyWeb.Models.Ticket_status.Pending) => "badge bg-warning text-dark",
+                        nameof(PropertyWeb.Models.Ticket_status.Assigned) => "badge bg-info text-dark",
+                        nameof(PropertyWeb.Models.Ticket_status.In_progress) => "badge bg-primary",
+                        nameof(PropertyWeb.Models.Ticket_status.Completed) => "badge bg-success",
+                        nameof(PropertyWeb.Models.Ticket_status.Closed) => "badge bg-secondary",
+                        _ => "badge bg-light text-dark"
+                    };
+                    <tr>
+                        <td>@ticket.Created_at.ToString("yyyy-MM-dd HH:mm")</td>
+                        <td>@ticket.Title</td>
+                        <td><span class="@statusClass">@ticket.Status</span></td>
+                        <td>@ticket.Owner?.User_name ?? "-"</td>
+                        <td>@ticket.Assigned_user?.User_name ?? "-"</td>
+                        <td>@ticket.Property?.Address_line ?? "-"</td>
+                        <td class="text-end">
+                            <a asp-action="EditTicket" asp-route-id="@ticket.Id" class="btn btn-outline-secondary btn-sm">Edit</a>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+

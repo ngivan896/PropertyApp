@@ -1,0 +1,40 @@
+@model PropertyWeb.Models.OwnerCreateTicketViewModel
+
+@{
+    ViewData["Title"] = "New ticket";
+    Layout = "_AppLayout";
+}
+
+<div class="container py-5">
+    <h1 class="h4 mb-4">Submit repair ticket</h1>
+
+    <form asp-action="NewTicket" method="post" class="col-md-6">
+        <div class="mb-3">
+            <label asp-for="PropertyId" class="form-label">Property</label>
+            <select asp-for="PropertyId" class="form-select">
+                <option value="">-- Select property --</option>
+                @foreach (var p in Model.PropertyOptions)
+                {
+                    <option value="@p.Id">@p.Address_line @if (!string.IsNullOrWhiteSpace(p.Unit_label)) { @($" (Unit {p.Unit_label})") }</option>
+                }
+            </select>
+            <span asp-validation-for="PropertyId" class="text-danger small"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Title" class="form-label">Title</label>
+            <input asp-for="Title" class="form-control" />
+            <span asp-validation-for="Title" class="text-danger small"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Description" class="form-label">Description (optional)</label>
+            <textarea asp-for="Description" class="form-control" rows="4"></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Submit ticket</button>
+        <a asp-action="MyTickets" class="btn btn-link">Back to tickets</a>
+    </form>
+</div>
+
+

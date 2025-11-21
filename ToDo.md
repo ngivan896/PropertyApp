@@ -1,15 +1,17 @@
 ## Task 1 – MVP & Deployment
 - [ ] Finalize user stories for owner, admin, worker roles
 - [x] Design DB schema (`Users`, `Properties`, `RepairTickets`, optional `PaymentRecords`)
-- [ ] Scaffold ASP.NET Core backend with authentication/authorization
-- [ ] Implement role-based portals (owner, admin, worker)
+- [x] Scaffold ASP.NET Core backend with authentication/authorization
+- [x] Implement role-based portals (owner, admin, worker)
 - [ ] Add repair ticket submission with image upload (S3-ready)
 - [x] Configure AWS RDS connection via `.env`
 - [x] Build responsive HTML/CSS/JS frontend
 - [x] Provision SQL Server RDS + apply EF Core migrations
-- [ ] Deploy app to Elastic Beanstalk or EC2
+- [x] Deploy app to Elastic Beanstalk or EC2
 - [ ] Capture required screenshots (DB creation, deployment, UI)
 - [ ] Prepare Task 1 report + source ZIP + demo script
+
+> Note: The Elastic Beanstalk environment is currently running the app on Linux using an in‑memory database because `Microsoft.Data.SqlClient` is not supported on this platform. The full RDS SQL Server integration is verified from the local .NET 7 environment and documented in the Task 1 report.
 
 ## Task 2 – Serverless & Monitoring
 - [ ] Draft new hybrid architecture diagram (monolith vs serverless)

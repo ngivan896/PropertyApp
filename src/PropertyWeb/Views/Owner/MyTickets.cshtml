@@ -1,0 +1,46 @@
+@model IEnumerable<PropertyWeb.Models.Repair_ticket>
+
+@{
+    ViewData["Title"] = "My tickets";
+    Layout = "_AppLayout";
+}
+
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h4 mb-1">My tickets</h1>
+            <p class="text-muted mb-0">Track repair tickets you have submitted.</p>
+        </div>
+        <a asp-action="NewTicket" class="btn btn-primary btn-sm">New ticket</a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <table class="table table-sm table-striped align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Created</th>
+                        <th>Title</th>
+                        <th>Status</th>
+                        <th>Property</th>
+                        <th>Assigned to</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var ticket in Model)
+                {
+                    <tr>
+                        <td>@ticket.Created_at.ToString("yyyy-MM-dd HH:mm")</td>
+                        <td>@ticket.Title</td>
+                        <td>@ticket.Status</td>
+                        <td>@ticket.Property?.Address_line ?? "-"</td>
+                        <td>@ticket.Assigned_user?.User_name ?? "-"</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+

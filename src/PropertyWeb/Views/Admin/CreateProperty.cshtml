@@ -1,0 +1,45 @@
+@model PropertyWeb.Models.AdminPropertyFormViewModel
+
+@{
+    ViewData["Title"] = "Add property";
+    Layout = "_AppLayout";
+}
+
+<div class="container py-5">
+    <h1 class="h4 mb-4">Add property</h1>
+
+    <form asp-action="CreateProperty" method="post" class="col-md-6">
+        <div class="mb-3">
+            <label asp-for="OwnerId" class="form-label">Owner</label>
+            <select asp-for="OwnerId" class="form-select">
+                <option value="">-- Select owner --</option>
+                @foreach (var o in Model.OwnerOptions)
+                {
+                    <option value="@o.Id">@o.User_name (@o.Email)</option>
+                }
+            </select>
+            <span asp-validation-for="OwnerId" class="text-danger small"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Address_line" class="form-label">Address</label>
+            <input asp-for="Address_line" class="form-control" />
+            <span asp-validation-for="Address_line" class="text-danger small"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Unit_label" class="form-label">Unit label (optional)</label>
+            <input asp-for="Unit_label" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Property_type" class="form-label">Property type (optional)</label>
+            <input asp-for="Property_type" class="form-control" />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Create property</button>
+        <a asp-action="Properties" class="btn btn-link">Back to list</a>
+    </form>
+</div>
+
+

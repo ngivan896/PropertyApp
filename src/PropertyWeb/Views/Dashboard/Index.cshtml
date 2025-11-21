@@ -1,0 +1,100 @@
+@{
+    ViewData["Title"] = "Operations dashboard";
+    Layout = "_AppLayout";
+}
+
+<div class="container py-5">
+    <h1 class="mb-3">Welcome back, @User.Identity?.Name</h1>
+    <p class="text-muted mb-4">
+        This is your property operations dashboard.
+        @if (User.IsInRole("admin"))
+        {
+            @: You can manage users and oversee tickets, properties, and payments.
+        }
+        else if (User.IsInRole("worker"))
+        {
+            @: You will see tickets assigned to you here.
+        }
+        else
+        {
+            @: You will see your properties, tickets, and payments here.
+        }
+    </p>
+
+    <div class="row g-4">
+        @if (User.IsInRole("owner"))
+        {
+            <div class="col-md-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">My tickets</h5>
+                        <p class="card-text">Submit and track repair tickets for your properties.</p>
+                        <a asp-controller="Owner" asp-action="MyTickets" class="btn btn-primary btn-sm">View tickets</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">My properties</h5>
+                        <p class="card-text">Review the properties registered under your account.</p>
+                        <a asp-controller="Owner" asp-action="Properties" class="btn btn-outline-primary btn-sm">View properties</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">My profile</h5>
+                        <p class="card-text">View your contact details and linked properties.</p>
+                        <a asp-controller="Owner" asp-action="Profile" class="btn btn-outline-secondary btn-sm">View profile</a>
+                    </div>
+                </div>
+            </div>
+        }
+        else if (User.IsInRole("admin"))
+        {
+            <div class="col-md-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Users</h5>
+                        <p class="card-text">Create and manage admin, owner, and worker accounts.</p>
+                        <a asp-controller="Admin" asp-action="Index" class="btn btn-primary btn-sm">Manage users</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Tickets</h5>
+                        <p class="card-text">Monitor and update all repair tickets.</p>
+                        <a asp-controller="Admin" asp-action="Tickets" class="btn btn-outline-primary btn-sm">View tickets</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Properties</h5>
+                        <p class="card-text">Manage properties and their assigned owners.</p>
+                        <a asp-controller="Admin" asp-action="Properties" class="btn btn-outline-primary btn-sm">View properties</a>
+                    </div>
+                </div>
+            </div>
+        }
+        else if (User.IsInRole("worker"))
+        {
+            <div class="col-md-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Assigned tickets</h5>
+                        <p class="card-text">View tickets that have been assigned to you.</p>
+                        <a asp-controller="Worker" asp-action="MyTickets" class="btn btn-primary btn-sm">View tickets</a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+

@@ -1,0 +1,72 @@
+@model PropertyWeb.Models.RegisterViewModel
+
+@{
+    ViewData["Title"] = "Register";
+}
+
+<div class="auth_page">
+    <div class="auth_panel auth_panel--form">
+        <div class="auth_header">
+            <h1 class="auth_title">Create your account</h1>
+            <p class="auth_subtitle">Sign up to start submitting tickets and managing your properties.</p>
+        </div>
+
+        <form asp-action="Register" method="post" class="auth_form">
+            <div class="mb-3">
+                <label asp-for="UserName" class="form-label">Full name</label>
+                <input asp-for="UserName" class="form-control auth_input" autocomplete="name" />
+                <span asp-validation-for="UserName" class="text-danger small"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label">Email</label>
+                <input asp-for="Email" class="form-control auth_input" autocomplete="email" />
+                <span asp-validation-for="Email" class="text-danger small"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Password" class="form-label">Password</label>
+                <input asp-for="Password" class="form-control auth_input" type="password" autocomplete="new-password" />
+                <span asp-validation-for="Password" class="text-danger small"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Phone" class="form-label">Phone (optional)</label>
+                <input asp-for="Phone" class="form-control auth_input" autocomplete="tel" />
+                <span asp-validation-for="Phone" class="text-danger small"></span>
+            </div>
+
+            @* Role is fixed to 'owner' for self-registration; not shown to the user *@
+
+            <button type="submit" class="btn btn-primary w-100 auth_btn-primary">Sign up</button>
+
+            <p class="auth_footer-text">
+                Already have an account?
+                <a asp-action="Login" class="auth_link">Log in</a>
+            </p>
+        </form>
+    </div>
+
+    <div class="auth_panel auth_panel--preview">
+        <div class="auth_preview-copy">
+            <h2>Onboard owners in minutes, not weeks.</h2>
+            <p>New accounts are ready to submit repair tickets, see property information, and track payment history from day one.</p>
+        </div>
+        <div class="auth_preview-card">
+            <div class="auth_preview-metric">
+                <span class="label">Avg. signup time</span>
+                <span class="value">01m 20s</span>
+            </div>
+            <div class="auth_preview-metric">
+                <span class="label">Owner activation</span>
+                <span class="value">92%</span>
+            </div>
+            <div class="auth_preview-chart">
+                <div class="bar bar-1"></div>
+                <div class="bar bar-2"></div>
+                <div class="bar bar-3"></div>
+                <div class="bar bar-4"></div>
+            </div>
+        </div>
+    </div>
+</div>

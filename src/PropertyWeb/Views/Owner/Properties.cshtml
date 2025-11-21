@@ -1,0 +1,36 @@
+@model IEnumerable<PropertyWeb.Models.Property_record>
+
+@{
+    ViewData["Title"] = "My properties";
+    Layout = "_AppLayout";
+}
+
+<div class="container py-5">
+    <h1 class="h4 mb-4">My properties</h1>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <table class="table table-sm table-striped align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Created</th>
+                        <th>Address</th>
+                        <th>Type</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var p in Model)
+                {
+                    <tr>
+                        <td>@p.Created_at.ToString("yyyy-MM-dd HH:mm")</td>
+                        <td>@p.Address_line @if (!string.IsNullOrWhiteSpace(p.Unit_label)) { @($" (Unit {p.Unit_label})") }</td>
+                        <td>@p.Property_type ?? "-"</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+

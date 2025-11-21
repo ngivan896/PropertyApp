@@ -1,0 +1,97 @@
+@model IEnumerable<PropertyWeb.Models.User_account>
+
+@{
+    ViewData["Title"] = "User management";
+    Layout = "_AppLayout";
+
+    var total = Model.Count();
+    var admins = Model.Count(u => string.Equals(u.Role, "admin", StringComparison.OrdinalIgnoreCase));
+    var owners = Model.Count(u => string.Equals(u.Role, "owner", StringComparison.OrdinalIgnoreCase));
+    var workers = Model.Count(u => string.Equals(u.Role, "worker", StringComparison.OrdinalIgnoreCase));
+}
+
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h4 mb-1">User directory</h1>
+            <p class="text-muted mb-0">Manage admin, owner, and worker accounts.</p>
+        </div>
+        <a asp-action="CreateUser" class="btn btn-primary btn-sm">Create user</a>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0">
+                <div class="card-body py-3">
+                    <p class="text-muted small mb-1">Total users</p>
+                    <h4 class="mb-0">@total</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0">
+                <div class="card-body py-3">
+                    <p class="text-muted small mb-1">Admins</p>
+                    <h4 class="mb-0">@admins</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0">
+                <div class="card-body py-3">
+                    <p class="text-muted small mb-1">Owners</p>
+                    <h4 class="mb-0">@owners</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0">
+                <div class="card-body py-3">
+                    <p class="text-muted small mb-1">Workers</p>
+                    <h4 class="mb-0">@workers</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h2 class="h6 mb-3">All users</h2>
+            <table class="table table-sm table-striped align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Email</th>
+                        <th>Name</th>
+                        <th>Role</th>
+                        <th>Created at (UTC)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var user in Model)
+                {
+                    <tr>
+                        <td>@user.Email</td>
+                        <td>@user.User_name</td>
+                        <td>
+                            @{
+                                var roleLower = (user.Role ?? string.Empty).ToLowerInvariant();
+                                var badgeClass = roleLower switch
+                                {
+                                    "admin" => "bg-danger",
+                                    "worker" => "bg-warning text-dark",
+                                    "owner" => "bg-primary",
+                                    _ => "bg-secondary"
+                                };
+                            }
+                            <span class="badge @badgeClass">@user.Role</span>
+                        </td>
+                        <td>@user.Created_at.ToString("yyyy-MM-dd HH:mm")</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+

@@ -1,6 +1,10 @@
 using DotNetEnv;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using PropertyWeb.Data;
+using PropertyWeb.Models;
+using PropertyWeb.Controllers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,7 +14,44 @@ Configure_database(builder);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
+builder.Services
+    .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Account/Login";
+        options.LogoutPath = "/Account/Logout";
+        options.AccessDeniedPath = "/Home/Privacy";
+        // For local development over HTTP, relax cookie settings
+        options.Cookie.SameSite = SameSiteMode.Lax;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.None;
+    });
+
 var app = builder.Build();
+
+// Seed a default admin user if none exists
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<Application_context>();
+
+    // Optional: ensure database is created/migrated in development
+    db.Database.EnsureCreated();
+
+    if (!db.User_set.Any(u => u.Role == "admin"))
+    {
+        var admin = new User_account
+        {
+            Id = Guid.NewGuid(),
+            User_name = "System Admin",
+            Email = "admin@propertyapp.local",
+            Password_hash = AccountController.HashFor_admin("Admin123!"),
+            Role = "admin",
+            Created_at = DateTime.UtcNow
+        };
+
+        db.User_set.Add(admin);
+        db.SaveChanges();
+    }
+}
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -25,6 +66,7 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(
@@ -70,7 +112,7 @@ static void Configure_database(WebApplicationBuilder builder)
 static string Build_connection_string()
 {
     var host = Environment.GetEnvironmentVariable("DB_HOST");
-    var port = Environment.GetEnvironmentVariable("DB_PORT") ?? "3306";
+    var port = Environment.GetEnvironmentVariable("DB_PORT") ?? "1433";
     var database = Environment.GetEnvironmentVariable("DB_NAME");
     var user = Environment.GetEnvironmentVariable("DB_USER");
     var password = Environment.GetEnvironmentVariable("DB_PASSWORD");
@@ -83,8 +125,6 @@ static string Build_connection_string()
         return string.Empty;
     }
 
-    var encrypt_pref = Environment.GetEnvironmentVariable("DB_SSL_MODE") ?? "Require";
-    var encrypt_flag = encrypt_pref.Equals("disable", StringComparison.OrdinalIgnoreCase) ? "False" : "True";
-
-    return $"Server={host},{port};Database={database};User Id={user};Password={password};Encrypt={encrypt_flag};TrustServerCertificate=False;";
+    // Development connection string for RDS SQL Server – disable encryption and trust certificate
+    return $"Server={host},{port};Database={database};User Id={user};Password={password};Encrypt=False;TrustServerCertificate=True;";
 }
