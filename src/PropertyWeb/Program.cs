@@ -95,15 +95,15 @@ static void Load_env_file(string content_root)
 
 static void Configure_database(WebApplicationBuilder builder)
 {
-    var connection_string = Build_connection_string();
-
-    if (string.IsNullOrWhiteSpace(connection_string))
-    {
-        builder.Services.AddDbContext<Application_context>(options =>
-            options.UseInMemoryDatabase("property_app_dev"));
-        Console.WriteLine("Warning: DB_* environment variables missing. Using in-memory database.");
-        return;
-    }
+    // Use a fixed RDS SQL Server connection string in all environments.
+    // This avoids falling back to the in-memory database, which would lose data on restart.
+    var connection_string =
+        "Server=property-mvp-db.cmaeqsfg0eds.us-east-1.rds.amazonaws.com,1433;" +
+        "Database=property-mvp-db;" +
+        "User Id=admin;" +
+        "Password=ivanng1009;" +
+        "Encrypt=False;" +
+        "TrustServerCertificate=True;";
 
     builder.Services.AddDbContext<Application_context>(options =>
         options.UseSqlServer(connection_string));
@@ -111,20 +111,6 @@ static void Configure_database(WebApplicationBuilder builder)
 
 static string Build_connection_string()
 {
-    var host = Environment.GetEnvironmentVariable("DB_HOST");
-    var port = Environment.GetEnvironmentVariable("DB_PORT") ?? "1433";
-    var database = Environment.GetEnvironmentVariable("DB_NAME");
-    var user = Environment.GetEnvironmentVariable("DB_USER");
-    var password = Environment.GetEnvironmentVariable("DB_PASSWORD");
-
-    if (string.IsNullOrWhiteSpace(host) ||
-        string.IsNullOrWhiteSpace(database) ||
-        string.IsNullOrWhiteSpace(user) ||
-        string.IsNullOrWhiteSpace(password))
-    {
-        return string.Empty;
-    }
-
-    // Development connection string for RDS SQL Server – disable encryption and trust certificate
-    return $"Server={host},{port};Database={database};User Id={user};Password={password};Encrypt=False;TrustServerCertificate=True;";
+    // No longer used – kept only to satisfy existing method calls if any.
+    return string.Empty;
 }
