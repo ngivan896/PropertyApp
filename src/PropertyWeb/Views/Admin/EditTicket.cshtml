@@ -2,7 +2,7 @@
 
 @{
     ViewData["Title"] = "Edit ticket";
-    Layout = "_AppLayout";
+    Layout = "_AdminLayout";
 }
 
 <div class="container py-5">
@@ -13,6 +13,7 @@
             <div class="card shadow-sm mb-3">
                 <div class="card-body">
                     <p class="mb-2"><strong>Title</strong><br />@Model.Title</p>
+                    <p class="mb-2"><strong>Description</strong><br />@(string.IsNullOrWhiteSpace(Model.Description) ? "No description provided." : Model.Description)</p>
                     <p class="mb-2"><strong>Owner</strong><br />@Model.OwnerName ?? "-"</p>
                     <p class="mb-0"><strong>Property</strong><br />@Model.PropertyAddress ?? "-"</p>
                 </div>

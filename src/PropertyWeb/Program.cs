@@ -5,6 +5,10 @@ using Microsoft.EntityFrameworkCore;
 using PropertyWeb.Data;
 using PropertyWeb.Models;
 using PropertyWeb.Controllers;
+using PropertyWeb.Services;
+using Amazon.S3;
+using Amazon;
+using Amazon.Runtime;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +17,29 @@ Configure_database(builder);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.Configure<TicketImageApiOptions>(builder.Configuration.GetSection("TicketImageApi"));
+
+// Configure AWS S3 client
+// Try to get bucket name from configuration first, then fall back to environment variable
+var ticketImageOptions = new TicketImageApiOptions();
+builder.Configuration.GetSection("TicketImageApi").Bind(ticketImageOptions);
+var bucketName = ticketImageOptions.BucketName ?? Environment.GetEnvironmentVariable("AWS_S3_BUCKET");
+var awsRegion = ticketImageOptions.Region ?? Environment.GetEnvironmentVariable("AWS_REGION") ?? "us-east-1";
+
+if (!string.IsNullOrWhiteSpace(bucketName))
+{
+    var region = RegionEndpoint.GetBySystemName(awsRegion);
+    
+    // AWS SDK will automatically try to get credentials from:
+    // 1. Environment variables (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_SESSION_TOKEN)
+    // 2. AWS credentials file (~/.aws/credentials)
+    // 3. EC2 instance role (if running on EC2)
+    // If credentials are not found, it will throw an exception when used
+    builder.Services.AddSingleton<IAmazonS3>(sp => new AmazonS3Client(region));
+}
+
+// Add HttpClient for API Gateway fallback (optional)
+builder.Services.AddHttpClient<ITicketImageService, TicketImageService>();
 
 builder.Services
     .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -87,6 +114,7 @@ static void Load_env_file(string content_root)
     {
         if (File.Exists(env_path))
         {
+            // Load .env file - DotNetEnv automatically sets environment variables
             Env.Load(env_path);
             break;
         }
@@ -107,10 +135,4 @@ static void Configure_database(WebApplicationBuilder builder)
 
     builder.Services.AddDbContext<Application_context>(options =>
         options.UseSqlServer(connection_string));
-}
-
-static string Build_connection_string()
-{
-    // No longer used – kept only to satisfy existing method calls if any.
-    return string.Empty;
 }

@@ -1,0 +1,248 @@
+@model PropertyWeb.Models.TicketDetailViewModel
+@using System.Security.Claims
+
+@{
+    ViewData["Title"] = "Ticket Details";
+    Layout = "_AdminLayout";
+    var ticket = Model.Ticket;
+    var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+}
+
+<div class="dashboard-header">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h1 class="dashboard-title">@ticket.Title</h1>
+            <p class="dashboard-subtitle">Ticket #@ticket.Id.ToString().Substring(0, 8)</p>
+        </div>
+        <div>
+            @{
+                var statusClass = ticket.Status.ToString() switch
+                {
+                    "Pending" => "badge badge-warning",
+                    "Assigned" => "badge badge-info",
+                    "In_progress" => "badge badge-primary",
+                    "Completed" => "badge badge-success",
+                    "Closed" => "badge badge-secondary",
+                    _ => "badge badge-secondary"
+                };
+            }
+            <span class="@statusClass">@ticket.Status</span>
+            <a asp-action="EditTicket" asp-route-id="@ticket.Id" class="btn-primary" style="margin-left: 12px;">Edit Ticket</a>
+        </div>
+    </div>
+</div>
+
+@if (TempData["MessageSent"] is string successMsg)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert" style="margin-bottom: 24px;">
+        @successMsg
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["MessageError"] is string errorMsg)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert" style="margin-bottom: 24px;">
+        @errorMsg
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="dashboard-grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 24px;">
+    <!-- Ticket Information -->
+    <div class="data-table">
+        <div class="table-header">
+            <div class="table-title">Ticket Information</div>
+        </div>
+        <div style="padding: 24px;">
+            <div style="margin-bottom: 16px;">
+                <strong>Title:</strong><br />
+                <span>@ticket.Title</span>
+            </div>
+            <div style="margin-bottom: 16px;">
+                <strong>Description:</strong><br />
+                <span>@(string.IsNullOrWhiteSpace(ticket.Description) ? "No description provided." : ticket.Description)</span>
+            </div>
+            <div style="margin-bottom: 16px;">
+                <strong>Status:</strong><br />
+                <span class="@statusClass">@ticket.Status</span>
+            </div>
+            <div style="margin-bottom: 16px;">
+                <strong>Owner:</strong><br />
+                <span>@(ticket.Owner?.User_name ?? "-") (@(ticket.Owner?.Email ?? "-"))</span>
+            </div>
+            <div style="margin-bottom: 16px;">
+                <strong>Assigned To:</strong><br />
+                <span>@(ticket.Assigned_user?.User_name ?? "Unassigned")</span>
+            </div>
+            <div style="margin-bottom: 16px;">
+                <strong>Property:</strong><br />
+                <span>@(ticket.Property?.Address_line ?? "-") @(ticket.Property?.Unit_label != null ? $"(Unit {ticket.Property.Unit_label})" : "")</span>
+            </div>
+            <div style="margin-bottom: 16px;">
+                <strong>Created:</strong><br />
+                <span>@ticket.Created_at.ToString("yyyy-MM-dd HH:mm") UTC</span>
+            </div>
+            @if (!string.IsNullOrWhiteSpace(ticket.Image_url))
+            {
+                <div style="margin-top: 16px;">
+                    <strong>Attached photo:</strong><br />
+                    <img src="@ticket.Image_url" alt="Ticket photo" class="img-fluid rounded border" style="max-height: 320px; object-fit: cover; margin-top: 8px; width: 100%;" />
+                    <div style="margin-top: 8px;">
+                        <a href="@ticket.Image_url" target="_blank" rel="noopener" style="color: var(--admin-primary); text-decoration: none;">Open original</a>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="progress-card">
+        <div class="progress-header">
+            <div class="progress-title">Ticket Activity</div>
+        </div>
+        <div style="padding: 24px;">
+            <div style="margin-bottom: 16px;">
+                <strong>Messages:</strong> @Model.Messages.Count
+            </div>
+            <div style="margin-bottom: 16px;">
+                <strong>Created:</strong> @ticket.Created_at.ToString("MMM dd, yyyy")
+            </div>
+            @if (ticket.Updated_at.HasValue)
+            {
+                <div style="margin-bottom: 16px;">
+                    <strong>Last Updated:</strong> @ticket.Updated_at.Value.ToString("MMM dd, yyyy HH:mm")
+                </div>
+            }
+            @if (ticket.Assigned_user != null)
+            {
+                <div style="margin-bottom: 16px;">
+                    <strong>Assigned Worker:</strong><br />
+                    <span>@ticket.Assigned_user.User_name</span>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Chat Section -->
+<div class="data-table">
+    <div class="table-header">
+        <div class="table-title">Ticket Conversation</div>
+    </div>
+    <div style="padding: 24px;">
+        <!-- Messages Display -->
+        <div id="chat-messages" style="max-height: 400px; overflow-y: auto; margin-bottom: 20px; padding: 16px; background: var(--admin-bg); border-radius: 12px;">
+            @if (Model.Messages.Any())
+            {
+                @foreach (var message in Model.Messages)
+                {
+                    var isCurrentUser = message.User_id.ToString() == currentUserId;
+                    <div style="margin-bottom: 16px; display: flex; @(isCurrentUser ? "justify-content: flex-end;" : "justify-content: flex-start;")">
+                        <div style="max-width: 70%; @(isCurrentUser ? "background: var(--admin-primary); color: white;" : "background: white; border: 1px solid var(--admin-border);") padding: 12px 16px; border-radius: 12px; box-shadow: var(--admin-shadow);">
+                            <div style="font-size: 12px; font-weight: 600; margin-bottom: 4px; @(isCurrentUser ? "color: rgba(255,255,255,0.9);" : "color: var(--admin-text-light);")">
+                                @message.User?.User_name (@message.User?.Role)
+                            </div>
+                            <div style="@(isCurrentUser ? "color: white;" : "color: var(--admin-text);")">
+                                @message.Message_text
+                            </div>
+                            <div style="font-size: 11px; margin-top: 4px; @(isCurrentUser ? "color: rgba(255,255,255,0.7);" : "color: var(--admin-text-light);")">
+                                @message.Created_at.ToString("MMM dd, yyyy HH:mm")
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div style="text-align: center; padding: 40px; color: var(--admin-text-light);">
+                    <p>No messages yet. Start the conversation!</p>
+                </div>
+            }
+        </div>
+
+        <!-- Message Input Form -->
+        @if (Model.CanSendMessage)
+        {
+            <form asp-action="SendMessage" method="post" id="message-form">
+                <input type="hidden" name="ticketId" value="@ticket.Id" />
+                <div style="display: flex; gap: 12px;">
+                    <input type="text" name="messageText" id="messageText" placeholder="Type your message here..." 
+                           style="flex: 1; padding: 12px 16px; border: 1px solid var(--admin-border); border-radius: 12px; font-size: 14px;" 
+                           required autocomplete="off" />
+                    <button type="submit" class="btn-primary" style="padding: 12px 24px;">
+                        <svg style="width: 20px; height: 20px; display: inline-block; vertical-align: middle;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                        </svg>
+                        <span style="margin-left: 8px;">Send</span>
+                    </button>
+                </div>
+            </form>
+        }
+    </div>
+</div>
+
+<!-- Auto-scroll to bottom and refresh messages -->
+@section Scripts {
+    <script>
+        // Auto-scroll chat to bottom
+        function scrollToBottom() {
+            const chatMessages = document.getElementById('chat-messages');
+            if (chatMessages) {
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        }
+
+        // Scroll on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            scrollToBottom();
+        });
+
+        // Auto-refresh messages every 5 seconds
+        let refreshInterval = setInterval(function() {
+            // Check if we should refresh (only if no new message is being typed)
+            const messageInput = document.getElementById('messageText');
+            if (messageInput && !messageInput.value.trim()) {
+                // Reload messages by refreshing the chat section
+                fetch('@Url.Action("ViewTicket", "Admin", new { id = ticket.Id })')
+                    .then(response => response.text())
+                    .then(html => {
+                        // Parse and update only the chat messages section
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(html, 'text/html');
+                        const newMessages = doc.getElementById('chat-messages');
+                        if (newMessages) {
+                            const currentMessages = document.getElementById('chat-messages');
+                            if (currentMessages && currentMessages.innerHTML !== newMessages.innerHTML) {
+                                currentMessages.innerHTML = newMessages.innerHTML;
+                                scrollToBottom();
+                            }
+                        }
+                    })
+                    .catch(err => console.log('Auto-refresh error:', err));
+            }
+        }, 5000);
+
+        // Clear interval when page unloads
+        window.addEventListener('beforeunload', function() {
+            clearInterval(refreshInterval);
+        });
+
+        // Focus message input on load
+        document.addEventListener('DOMContentLoaded', function() {
+            const messageInput = document.getElementById('messageText');
+            if (messageInput) {
+                messageInput.focus();
+            }
+        });
+    </script>
+}
+
+
+
+
+
+
+
+
+

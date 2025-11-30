@@ -1,0 +1,174 @@
+@{
+    ViewData["Title"] = "Dashboard";
+    Layout = "_OwnerLayout";
+}
+
+<div class="dashboard-header">
+    <h1 class="dashboard-title">Dashboard</h1>
+    <p class="dashboard-subtitle">Welcome back! Here's an overview of your properties and tickets.</p>
+</div>
+
+<!-- Statistics Cards -->
+<div class="dashboard-grid">
+    <div class="stat-card">
+        <div class="stat-label">Total Properties</div>
+        <div class="stat-value">@ViewBag.TotalProperties</div>
+        <div class="stat-change positive">Your properties</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Total Tickets</div>
+        <div class="stat-value">@ViewBag.TotalTickets</div>
+        <div class="stat-change positive">All tickets</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Open Tickets</div>
+        <div class="stat-value">@ViewBag.OpenTickets</div>
+        <div class="stat-change @(ViewBag.OpenTickets > 0 ? "negative" : "positive")">
+            @(ViewBag.OpenTickets > 0 ? "In progress" : "All resolved")
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Completed</div>
+        <div class="stat-value">@ViewBag.CompletedTickets</div>
+        <div class="stat-change positive">@ViewBag.CompletionRate% completion rate</div>
+    </div>
+</div>
+
+<!-- Main Content Grid -->
+<div class="dashboard-grid" style="grid-template-columns: 2fr 1fr;">
+    <!-- Tickets Overview -->
+    <div class="chart-card">
+        <div class="chart-header">
+            <div>
+                <div class="chart-title">Ticket Status Overview</div>
+                <div class="chart-subtitle">All your repair tickets</div>
+            </div>
+            <div class="chart-stats">
+                <span class="chart-value">@ViewBag.TotalTickets</span>
+                <span class="chart-change">Total</span>
+            </div>
+        </div>
+        <div class="chart-container">
+            @{
+                var openPercent = ViewBag.TotalTickets > 0 ? (int)((double)ViewBag.OpenTickets / ViewBag.TotalTickets * 100) : 0;
+                var completedPercent = ViewBag.TotalTickets > 0 ? (int)((double)ViewBag.CompletedTickets / ViewBag.TotalTickets * 100) : 0;
+            }
+            <div class="chart-bar" style="height: @(Math.Max(20, openPercent))%;" title="Open: @ViewBag.OpenTickets"></div>
+            <div class="chart-bar" style="height: @(Math.Max(20, completedPercent))%; background: linear-gradient(180deg, #10b981, #059669);" title="Completed: @ViewBag.CompletedTickets"></div>
+            <div class="chart-bar" style="height: 30%; background: linear-gradient(180deg, #64748b, #475569);" title="Closed"></div>
+        </div>
+    </div>
+
+    <!-- Progress Card -->
+    <div class="progress-card">
+        <div class="progress-header">
+            <div class="progress-title">Ticket Resolution</div>
+            <span class="progress-badge">@ViewBag.CompletionRate%</span>
+        </div>
+        <div class="progress-circle">
+            <svg width="160" height="160">
+                <circle cx="80" cy="80" r="70" stroke="#e2e8f0" stroke-width="12" fill="none" />
+                <circle cx="80" cy="80" r="70" stroke="#14b8a6" stroke-width="12" fill="none"
+                        stroke-dasharray="@(440 * ViewBag.CompletionRate / 100) 440"
+                        transform="rotate(-90 80 80)" />
+            </svg>
+            <div class="progress-circle-text">
+                <div class="progress-percentage">@ViewBag.CompletionRate%</div>
+                <div class="progress-label">Resolved</div>
+            </div>
+        </div>
+        <p class="progress-message">Your tickets are being processed!</p>
+        <div class="progress-actions">
+            <a asp-action="MyTickets" class="btn-primary">View Tickets</a>
+            <a asp-action="NewTicket" class="btn-outline">New Ticket</a>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Tickets Section -->
+<div class="courses-section">
+    <div class="section-header">
+        <h2 class="section-title">
+            Recent Tickets
+            <span class="section-count">(@ViewBag.TotalTickets Total)</span>
+        </h2>
+        <div>
+            <a asp-action="NewTicket" class="btn-primary" style="margin-right: 12px;">New Ticket</a>
+            <a asp-action="MyTickets" class="btn-outline">View All</a>
+        </div>
+    </div>
+    <div class="courses-grid">
+        @if (ViewBag.RecentTickets != null && ((List<PropertyWeb.Models.Repair_ticket>)ViewBag.RecentTickets).Any())
+        {
+            @foreach (var ticket in (List<PropertyWeb.Models.Repair_ticket>)ViewBag.RecentTickets)
+            {
+                var statusClass = ticket.Status switch
+                {
+                    PropertyWeb.Models.Ticket_status.Pending => "warning",
+                    PropertyWeb.Models.Ticket_status.Assigned => "info",
+                    PropertyWeb.Models.Ticket_status.In_progress => "primary",
+                    PropertyWeb.Models.Ticket_status.Completed => "success",
+                    PropertyWeb.Models.Ticket_status.Closed => "secondary",
+                    _ => "secondary"
+                };
+                
+                var statusText = ticket.Status.ToString().Replace("_", " ");
+                var progressPercent = ticket.Status == PropertyWeb.Models.Ticket_status.Completed ? 100 
+                                    : ticket.Status == PropertyWeb.Models.Ticket_status.In_progress ? 75
+                                    : ticket.Status == PropertyWeb.Models.Ticket_status.Assigned ? 50
+                                    : ticket.Status == PropertyWeb.Models.Ticket_status.Pending ? 25 : 100;
+                
+                <div class="course-card">
+                    <div class="course-header">
+                        <div class="course-icon @statusClass">
+                            @ticket.Title.Substring(0, 1).ToUpper()
+                        </div>
+                        <div class="course-info">
+                            <div class="course-name">@ticket.Title</div>
+                            <div class="course-instructor">Assigned to: @(ticket.Assigned_user?.User_name ?? "Pending")</div>
+                        </div>
+                    </div>
+                    <div class="course-progress">
+                        <div class="progress-bar-wrapper">
+                            <div class="progress-bar" style="width: @progressPercent%"></div>
+                        </div>
+                        <div class="progress-text">
+                            <span class="badge badge-@statusClass">@statusText</span>
+                            @if (ticket.Property != null)
+                            {
+                                <span> • @ticket.Property.Address_line</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="course-card">
+                <div class="course-header">
+                    <div class="course-icon primary">N</div>
+                    <div class="course-info">
+                        <div class="course-name">No tickets yet</div>
+                        <div class="course-instructor">Submit your first repair ticket</div>
+                    </div>
+                </div>
+                <div class="course-progress">
+                    <div style="text-align: center; padding: 20px;">
+                        <a asp-action="NewTicket" class="btn-primary">Create First Ticket</a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+

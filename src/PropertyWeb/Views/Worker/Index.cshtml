@@ -1,0 +1,154 @@
+@{
+    ViewData["Title"] = "Dashboard";
+    Layout = "_WorkerLayout";
+}
+
+<div class="dashboard-header">
+    <h1 class="dashboard-title">Dashboard</h1>
+    <p class="dashboard-subtitle">Welcome back! Here's an overview of your assigned tickets.</p>
+</div>
+
+<!-- Statistics Cards -->
+<div class="dashboard-grid">
+    <div class="stat-card">
+        <div class="stat-label">Total Tickets</div>
+        <div class="stat-value">@ViewBag.TotalTickets</div>
+        <div class="stat-change positive">Assigned to you</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Pending</div>
+        <div class="stat-value">@ViewBag.PendingTickets</div>
+        <div class="stat-change @(ViewBag.PendingTickets > 0 ? "negative" : "positive")">
+            @(ViewBag.PendingTickets > 0 ? "Action needed" : "All clear")
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">In Progress</div>
+        <div class="stat-value">@ViewBag.InProgressTickets</div>
+        <div class="stat-change positive">Active work</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Completed</div>
+        <div class="stat-value">@ViewBag.CompletedTickets</div>
+        <div class="stat-change positive">@ViewBag.CompletionRate% completion rate</div>
+    </div>
+</div>
+
+<!-- Progress Card -->
+<div class="dashboard-grid" style="grid-template-columns: 1fr 1fr;">
+    <div class="progress-card">
+        <div class="progress-header">
+            <div class="progress-title">Work Completion</div>
+            <span class="progress-badge">@ViewBag.CompletionRate%</span>
+        </div>
+        <div class="progress-circle">
+            <svg width="160" height="160">
+                <circle cx="80" cy="80" r="70" stroke="#e2e8f0" stroke-width="12" fill="none" />
+                <circle cx="80" cy="80" r="70" stroke="#14b8a6" stroke-width="12" fill="none"
+                        stroke-dasharray="@(440 * ViewBag.CompletionRate / 100) 440"
+                        transform="rotate(-90 80 80)" />
+            </svg>
+            <div class="progress-circle-text">
+                <div class="progress-percentage">@ViewBag.CompletionRate%</div>
+                <div class="progress-label">Complete</div>
+            </div>
+        </div>
+        <p class="progress-message">Keep up the great work!</p>
+        <div class="progress-actions">
+            <a asp-action="MyTickets" class="btn-primary">View All Tickets</a>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="schedule-card">
+        <div class="schedule-header">
+            <div class="schedule-title">Recent Assignments</div>
+            <div class="schedule-subtitle">Latest tickets assigned to you.</div>
+        </div>
+        <div class="schedule-list">
+            @if (ViewBag.RecentTickets != null && ((List<PropertyWeb.Models.Repair_ticket>)ViewBag.RecentTickets).Any())
+            {
+                @foreach (var ticket in ((List<PropertyWeb.Models.Repair_ticket>)ViewBag.RecentTickets).Take(5))
+                {
+                    <div class="schedule-item">
+                        <div class="schedule-time">@ticket.Created_at.ToString("MMM dd")</div>
+                        <div class="schedule-content">
+                            <div class="schedule-title">@ticket.Title</div>
+                            <span class="schedule-tag">@ticket.Status</span>
+                            <div class="schedule-description">
+                                Property: @(ticket.Property?.Address_line ?? "N/A")
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="schedule-item">
+                    <div class="schedule-time">--</div>
+                    <div class="schedule-content">
+                        <div class="schedule-title">No tickets assigned yet</div>
+                        <div class="schedule-description">Check back later for new assignments.</div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Recent Tickets Section -->
+<div class="courses-section">
+    <div class="section-header">
+        <h2 class="section-title">
+            Recent Tickets
+            <span class="section-count">(@ViewBag.TotalTickets Total)</span>
+        </h2>
+        <a asp-action="MyTickets" class="btn-outline">View All</a>
+    </div>
+    <div class="courses-grid">
+        @if (ViewBag.RecentTickets != null)
+        {
+            @foreach (var ticket in (List<PropertyWeb.Models.Repair_ticket>)ViewBag.RecentTickets)
+            {
+                var statusClass = ticket.Status switch
+                {
+                    PropertyWeb.Models.Ticket_status.Pending => "warning",
+                    PropertyWeb.Models.Ticket_status.Assigned => "info",
+                    PropertyWeb.Models.Ticket_status.In_progress => "primary",
+                    PropertyWeb.Models.Ticket_status.Completed => "success",
+                    PropertyWeb.Models.Ticket_status.Closed => "secondary",
+                    _ => "secondary"
+                };
+                
+                var statusText = ticket.Status.ToString().Replace("_", " ");
+                var progressPercent = ticket.Status == PropertyWeb.Models.Ticket_status.Completed ? 100 
+                                    : ticket.Status == PropertyWeb.Models.Ticket_status.In_progress ? 75
+                                    : ticket.Status == PropertyWeb.Models.Ticket_status.Assigned ? 50
+                                    : ticket.Status == PropertyWeb.Models.Ticket_status.Pending ? 25 : 100;
+                
+                <div class="course-card">
+                    <div class="course-header">
+                        <div class="course-icon @statusClass">
+                            @ticket.Title.Substring(0, 1).ToUpper()
+                        </div>
+                        <div class="course-info">
+                            <div class="course-name">@ticket.Title</div>
+                            <div class="course-instructor">Owner: @(ticket.Owner?.User_name ?? "N/A")</div>
+                        </div>
+                    </div>
+                    <div class="course-progress">
+                        <div class="progress-bar-wrapper">
+                            <div class="progress-bar" style="width: @progressPercent%"></div>
+                        </div>
+                        <div class="progress-text">
+                            <span class="badge badge-@statusClass">@statusText</span>
+                            <span> • @(ticket.Property?.Address_line ?? "N/A")</span>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+

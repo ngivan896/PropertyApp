@@ -1,40 +1,50 @@
 @model PropertyWeb.Models.WorkerEditTicketViewModel
 
 @{
-    ViewData["Title"] = "Update ticket";
-    Layout = "_AppLayout";
+    ViewData["Title"] = "Update Ticket";
+    Layout = "_WorkerLayout";
 }
 
-<div class="container py-5">
-    <h1 class="h4 mb-3">Update ticket</h1>
+<div class="dashboard-header">
+    <h1 class="dashboard-title">Update Ticket</h1>
+    <p class="dashboard-subtitle">Update the status of this repair ticket.</p>
+</div>
 
-    <div class="row g-4">
-        <div class="col-lg-5">
-            <div class="card shadow-sm mb-3">
-                <div class="card-body">
-                    <p class="mb-2"><strong>Title</strong><br />@Model.Title</p>
-                    <p class="mb-2"><strong>Owner</strong><br />@Model.OwnerName ?? "-"</p>
-                    <p class="mb-0"><strong>Property</strong><br />@Model.PropertyAddress ?? "-"</p>
-                </div>
-            </div>
+<div class="dashboard-grid" style="grid-template-columns: 1fr 1fr;">
+    <div class="data-table">
+        <div class="table-header">
+            <div class="table-title">Ticket Information</div>
         </div>
-        <div class="col-lg-7">
+        <div style="padding: 24px;">
+            <p class="mb-2"><strong>Title:</strong><br />@Model.Title</p>
+            <p class="mb-2"><strong>Description:</strong><br />@(string.IsNullOrWhiteSpace(Model.Description) ? "No description provided." : Model.Description)</p>
+            <p class="mb-2"><strong>Owner:</strong><br />@Model.OwnerName ?? "-"</p>
+            <p class="mb-0"><strong>Property:</strong><br />@Model.PropertyAddress ?? "-"</p>
+        </div>
+    </div>
+    <div class="progress-card">
+        <div class="progress-header">
+            <div class="progress-title">Update Status</div>
+        </div>
+        <div style="padding: 24px;">
             <form asp-action="EditTicket" method="post">
                 <input type="hidden" asp-for="Id" />
 
-                <div class="mb-3">
-                    <label asp-for="Status" class="form-label">Status</label>
-                    <select asp-for="Status" class="form-select"
+                <div style="margin-bottom: 20px;">
+                    <label asp-for="Status" style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--admin-text);">Status</label>
+                    <select asp-for="Status" class="form-select" style="padding: 12px; border-radius: 10px; border: 1px solid var(--admin-border); font-size: 14px;"
                             asp-items="Html.GetEnumSelectList<PropertyWeb.Models.Ticket_status>()">
                     </select>
-                    <div class="form-text">
+                    <div style="font-size: 13px; color: var(--admin-text-light); margin-top: 8px;">
                         Use <strong>In_progress</strong> when you start work, and <strong>Completed</strong> when the repair is done.
                     </div>
                     <span asp-validation-for="Status" class="text-danger small"></span>
                 </div>
 
-                <button type="submit" class="btn btn-primary me-2">Save</button>
-                <a asp-action="MyTickets" class="btn btn-outline-secondary">Cancel</a>
+                <div style="display: flex; gap: 12px;">
+                    <button type="submit" class="btn-primary">Save Changes</button>
+                    <a asp-action="MyTickets" class="btn-outline">Cancel</a>
+                </div>
             </form>
         </div>
     </div>

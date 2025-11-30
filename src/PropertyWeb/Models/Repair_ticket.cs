@@ -27,6 +27,8 @@ public class Repair_ticket
     public User_account? Assigned_user { get; set; }
 
     public Property_record? Property { get; set; }
+
+    public ICollection<Ticket_message> Messages { get; set; } = new List<Ticket_message>();
 }
 
 public enum Ticket_status

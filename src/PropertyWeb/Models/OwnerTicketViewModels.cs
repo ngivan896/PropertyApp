@@ -14,6 +14,12 @@ public class OwnerCreateTicketViewModel
     [MaxLength]
     public string? Description { get; set; }
 
+    public Guid DraftTicketId { get; set; } = Guid.NewGuid();
+
+    public string? UploadedImageKey { get; set; }
+
+    public string? UploadedImageBucket { get; set; }
+
     public IEnumerable<Property_record> PropertyOptions { get; set; } = Enumerable.Empty<Property_record>();
 }
 

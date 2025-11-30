@@ -1,16 +1,21 @@
 @model IEnumerable<PropertyWeb.Models.Property_record>
 
 @{
-    ViewData["Title"] = "My properties";
-    Layout = "_AppLayout";
+    ViewData["Title"] = "My Properties";
+    Layout = "_OwnerLayout";
 }
 
-<div class="container py-5">
-    <h1 class="h4 mb-4">My properties</h1>
+<div class="dashboard-header">
+    <h1 class="dashboard-title">My Properties</h1>
+    <p class="dashboard-subtitle">View all your registered properties.</p>
+</div>
 
-    <div class="card shadow-sm">
-        <div class="card-body">
-            <table class="table table-sm table-striped align-middle mb-0">
+<div class="data-table">
+    <div class="table-header">
+        <div class="table-title">All Properties</div>
+    </div>
+    <div class="table-wrapper">
+        <table>
                 <thead>
                     <tr>
                         <th>Created</th>

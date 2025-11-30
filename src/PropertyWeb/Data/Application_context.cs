@@ -13,6 +13,7 @@ public class Application_context : DbContext
     public DbSet<Property_record> Property_set => Set<Property_record>();
     public DbSet<Repair_ticket> Repair_ticket_set => Set<Repair_ticket>();
     public DbSet<Payment_record> Payment_record_set => Set<Payment_record>();
+    public DbSet<Ticket_message> Ticket_message_set => Set<Ticket_message>();
 
     protected override void OnModelCreating(ModelBuilder model_builder)
     {
@@ -89,6 +90,26 @@ public class Application_context : DbContext
             entity.HasOne(item => item.Owner)
                 .WithMany()
                 .HasForeignKey(item => item.Owner_id)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        model_builder.Entity<Ticket_message>(entity =>
+        {
+            entity.ToTable("ticket_messages");
+            entity.Property(item => item.Id).HasColumnName("id");
+            entity.Property(item => item.Ticket_id).HasColumnName("ticket_id");
+            entity.Property(item => item.User_id).HasColumnName("user_id");
+            entity.Property(item => item.Message_text).HasColumnName("message_text");
+            entity.Property(item => item.Created_at).HasColumnName("created_at");
+
+            entity.HasOne(item => item.Ticket)
+                .WithMany(t => t.Messages)
+                .HasForeignKey(item => item.Ticket_id)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(item => item.User)
+                .WithMany()
+                .HasForeignKey(item => item.User_id)
                 .OnDelete(DeleteBehavior.Restrict);
         });
     }

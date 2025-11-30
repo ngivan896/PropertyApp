@@ -1,97 +1,257 @@
-@model IEnumerable<PropertyWeb.Models.User_account>
-
 @{
-    ViewData["Title"] = "User management";
-    Layout = "_AppLayout";
-
-    var total = Model.Count();
-    var admins = Model.Count(u => string.Equals(u.Role, "admin", StringComparison.OrdinalIgnoreCase));
-    var owners = Model.Count(u => string.Equals(u.Role, "owner", StringComparison.OrdinalIgnoreCase));
-    var workers = Model.Count(u => string.Equals(u.Role, "worker", StringComparison.OrdinalIgnoreCase));
+    ViewData["Title"] = "Dashboard";
+    Layout = "_AdminLayout";
 }
 
-<div class="container py-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1 class="h4 mb-1">User directory</h1>
-            <p class="text-muted mb-0">Manage admin, owner, and worker accounts.</p>
-        </div>
-        <a asp-action="CreateUser" class="btn btn-primary btn-sm">Create user</a>
-    </div>
+<div class="dashboard-header">
+    <h1 class="dashboard-title">Dashboard</h1>
+    <p class="dashboard-subtitle">Welcome back! Here's what's happening with your properties today.</p>
+</div>
 
-    <div class="row g-3 mb-4">
-        <div class="col-md-3">
-            <div class="card shadow-sm border-0">
-                <div class="card-body py-3">
-                    <p class="text-muted small mb-1">Total users</p>
-                    <h4 class="mb-0">@total</h4>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card shadow-sm border-0">
-                <div class="card-body py-3">
-                    <p class="text-muted small mb-1">Admins</p>
-                    <h4 class="mb-0">@admins</h4>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card shadow-sm border-0">
-                <div class="card-body py-3">
-                    <p class="text-muted small mb-1">Owners</p>
-                    <h4 class="mb-0">@owners</h4>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card shadow-sm border-0">
-                <div class="card-body py-3">
-                    <p class="text-muted small mb-1">Workers</p>
-                    <h4 class="mb-0">@workers</h4>
-                </div>
-            </div>
+<!-- Statistics Cards -->
+<div class="dashboard-grid">
+    <div class="stat-card">
+        <div class="stat-label">Total Users</div>
+        <div class="stat-value">@ViewBag.TotalUsers</div>
+        <div class="stat-change positive">+@ViewBag.TotalUsers total</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Total Tickets</div>
+        <div class="stat-value">@ViewBag.TotalTickets</div>
+        <div class="stat-change @(ViewBag.OpenTickets > 0 ? "negative" : "positive")">
+            @ViewBag.OpenTickets open
         </div>
     </div>
+    <div class="stat-card">
+        <div class="stat-label">Total Properties</div>
+        <div class="stat-value">@ViewBag.TotalProperties</div>
+        <div class="stat-change positive">All properties</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Completed Tickets</div>
+        <div class="stat-value">@ViewBag.CompletedTickets</div>
+        <div class="stat-change positive">@ViewBag.CompletionRate% completion rate</div>
+    </div>
+</div>
 
-    <div class="card shadow-sm">
-        <div class="card-body">
-            <h2 class="h6 mb-3">All users</h2>
-            <table class="table table-sm table-striped align-middle mb-0">
-                <thead>
-                    <tr>
-                        <th>Email</th>
-                        <th>Name</th>
-                        <th>Role</th>
-                        <th>Created at (UTC)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                @foreach (var user in Model)
-                {
-                    <tr>
-                        <td>@user.Email</td>
-                        <td>@user.User_name</td>
-                        <td>
-                            @{
-                                var roleLower = (user.Role ?? string.Empty).ToLowerInvariant();
-                                var badgeClass = roleLower switch
-                                {
-                                    "admin" => "bg-danger",
-                                    "worker" => "bg-warning text-dark",
-                                    "owner" => "bg-primary",
-                                    _ => "bg-secondary"
-                                };
-                            }
-                            <span class="badge @badgeClass">@user.Role</span>
-                        </td>
-                        <td>@user.Created_at.ToString("yyyy-MM-dd HH:mm")</td>
-                    </tr>
-                }
-                </tbody>
-            </table>
+<!-- Main Content Grid -->
+<div class="dashboard-grid" style="grid-template-columns: 2fr 1fr;">
+    <!-- Tickets & Activity Chart -->
+    <div class="chart-card">
+        <div class="chart-header">
+            <div>
+                <div class="chart-title">Ticket Status Overview</div>
+                <div class="chart-subtitle">All repair tickets status tracking</div>
+            </div>
+            <div class="chart-stats">
+                <span class="chart-value">@ViewBag.TotalTickets</span>
+                <span class="chart-change">Total</span>
+            </div>
+        </div>
+        <div class="chart-tabs">
+            <button class="chart-tab active">All Time</button>
+            <button class="chart-tab">6 Months</button>
+            <button class="chart-tab">3 Months</button>
+        </div>
+        <div class="chart-container">
+            @{
+                var openPercent = ViewBag.TotalTickets > 0 ? (int)((double)ViewBag.OpenTickets / ViewBag.TotalTickets * 100) : 0;
+                var completedPercent = ViewBag.TotalTickets > 0 ? (int)((double)ViewBag.CompletedTickets / ViewBag.TotalTickets * 100) : 0;
+                var closedPercent = ViewBag.TotalTickets > 0 ? (int)((double)ViewBag.ClosedTickets / ViewBag.TotalTickets * 100) : 0;
+            }
+            <div class="chart-bar" style="height: @(Math.Max(20, openPercent))%;" title="Open: @ViewBag.OpenTickets"></div>
+            <div class="chart-bar" style="height: @(Math.Max(20, completedPercent))%; background: linear-gradient(180deg, #10b981, #059669);" title="Completed: @ViewBag.CompletedTickets"></div>
+            <div class="chart-bar" style="height: @(Math.Max(20, closedPercent))%; background: linear-gradient(180deg, #64748b, #475569);" title="Closed: @ViewBag.ClosedTickets"></div>
+            <div class="chart-bar" style="height: 40%; background: linear-gradient(180deg, #f59e0b, #d97706);" title="Pending"></div>
+            <div class="chart-bar" style="height: 60%; background: linear-gradient(180deg, #6366f1, #4f46e5);" title="In Progress"></div>
+            <div class="chart-bar" style="height: 30%; background: linear-gradient(180deg, #8b5cf6, #7c3aed);" title="Assigned"></div>
+        </div>
+    </div>
+
+    <!-- Progress Card -->
+    <div class="progress-card">
+        <div class="progress-header">
+            <div class="progress-title">Ticket Completion</div>
+            <span class="progress-badge">@ViewBag.CompletionRate%</span>
+        </div>
+        <div class="progress-circle">
+            <svg width="160" height="160">
+                <circle cx="80" cy="80" r="70" stroke="#e2e8f0" stroke-width="12" fill="none" />
+                <circle cx="80" cy="80" r="70" stroke="#14b8a6" stroke-width="12" fill="none"
+                        stroke-dasharray="@(440 * ViewBag.CompletionRate / 100) 440"
+                        transform="rotate(-90 80 80)" />
+            </svg>
+            <div class="progress-circle-text">
+                <div class="progress-percentage">@ViewBag.CompletionRate%</div>
+                <div class="progress-label">Complete</div>
+            </div>
+        </div>
+        <p class="progress-message">Keep going! You're closer to your goal.</p>
+        <div class="progress-actions">
+            <a asp-action="Tickets" class="btn-primary">View Tickets</a>
+            <a asp-action="Properties" class="btn-outline">Properties</a>
         </div>
     </div>
 </div>
 
+<!-- Recent Tickets Section -->
+<div class="courses-section">
+    <div class="section-header">
+        <h2 class="section-title">
+            Recent Tickets
+            <span class="section-count">(@ViewBag.TotalTickets Total)</span>
+        </h2>
+        <a asp-action="Tickets" class="btn-outline">View All</a>
+    </div>
+    <div class="courses-grid">
+        @if (ViewBag.RecentTickets != null)
+        {
+            @foreach (var ticket in (List<PropertyWeb.Models.Repair_ticket>)ViewBag.RecentTickets)
+            {
+                var statusClass = ticket.Status switch
+                {
+                    PropertyWeb.Models.Ticket_status.Pending => "warning",
+                    PropertyWeb.Models.Ticket_status.Assigned => "info",
+                    PropertyWeb.Models.Ticket_status.In_progress => "primary",
+                    PropertyWeb.Models.Ticket_status.Completed => "success",
+                    PropertyWeb.Models.Ticket_status.Closed => "secondary",
+                    _ => "secondary"
+                };
+                
+                var statusText = ticket.Status.ToString().Replace("_", " ");
+                var daysSince = (DateTime.UtcNow - ticket.Created_at).Days;
+                var progressPercent = ticket.Status == PropertyWeb.Models.Ticket_status.Completed ? 100 
+                                    : ticket.Status == PropertyWeb.Models.Ticket_status.In_progress ? 75
+                                    : ticket.Status == PropertyWeb.Models.Ticket_status.Assigned ? 50
+                                    : ticket.Status == PropertyWeb.Models.Ticket_status.Pending ? 25 : 100;
+                
+                <div class="course-card">
+                    <div class="course-header">
+                        <div class="course-icon @statusClass">
+                            @ticket.Title.Substring(0, 1).ToUpper()
+                        </div>
+                        <div class="course-info">
+                            <div class="course-name">@ticket.Title</div>
+                            <div class="course-instructor">Owner: @(ticket.Owner?.User_name ?? "N/A")</div>
+                        </div>
+                    </div>
+                    <div class="course-progress">
+                        <div class="progress-bar-wrapper">
+                            <div class="progress-bar" style="width: @progressPercent%"></div>
+                        </div>
+                        <div class="progress-text">
+                            <span class="badge badge-@statusClass">@statusText</span>
+                            @if (ticket.Assigned_user != null)
+                            {
+                                <span> • Assigned to @ticket.Assigned_user.User_name</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>
 
+<!-- Recent Users & Upcoming Schedule -->
+<div class="dashboard-grid" style="grid-template-columns: 1fr 1fr;">
+    <!-- Recent Users -->
+    <div class="data-table">
+        <div class="table-header">
+            <div class="table-title">Recent Users</div>
+            <a asp-action="Users" class="btn-outline" style="padding: 6px 16px; font-size: 13px;">View All</a>
+        </div>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Joined</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (ViewBag.RecentUsers != null)
+                    {
+                        @foreach (var user in (List<PropertyWeb.Models.User_account>)ViewBag.RecentUsers)
+                        {
+                            var roleClass = user.Role?.ToLower() switch
+                            {
+                                "admin" => "danger",
+                                "owner" => "primary",
+                                "worker" => "warning",
+                                _ => "secondary"
+                            };
+                            <tr>
+                                <td>@user.User_name</td>
+                                <td>@user.Email</td>
+                                <td><span class="badge badge-@roleClass">@user.Role</span></td>
+                                <td>@user.Created_at.ToString("MMM dd, yyyy")</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Upcoming Schedule -->
+    <div class="schedule-card">
+        <div class="schedule-header">
+            <div class="schedule-title">Upcoming Activities</div>
+            <div class="schedule-subtitle">Track your daily tasks and upcoming activities.</div>
+        </div>
+        <div class="schedule-calendar">
+            @for (int i = 0; i < 7; i++)
+            {
+                var date = DateTime.Now.AddDays(i);
+                var isToday = i == 0;
+                <div class="calendar-day @(isToday ? "active" : "")">
+                    <div class="day-number">@date.Day</div>
+                    <div class="day-name">@date.ToString("ddd")</div>
+                </div>
+            }
+        </div>
+        <div class="schedule-list">
+            @if (ViewBag.RecentTickets != null && ((List<PropertyWeb.Models.Repair_ticket>)ViewBag.RecentTickets).Any())
+            {
+                @foreach (var ticket in ((List<PropertyWeb.Models.Repair_ticket>)ViewBag.RecentTickets).Take(3))
+                {
+                    <div class="schedule-item">
+                        <div class="schedule-time">@ticket.Created_at.ToString("HH:mm")</div>
+                        <div class="schedule-content">
+                            <div class="schedule-title">@ticket.Title</div>
+                            <span class="schedule-tag">@ticket.Status</span>
+                            <div class="schedule-description">
+                                @(ticket.Description?.Length > 60 ? ticket.Description.Substring(0, 60) + "..." : ticket.Description ?? "No description")
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="schedule-item">
+                    <div class="schedule-time">--:--</div>
+                    <div class="schedule-content">
+                        <div class="schedule-title">No upcoming activities</div>
+                        <div class="schedule-description">Check back later for new tickets and tasks.</div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Simple interactivity for chart tabs
+        document.querySelectorAll('.chart-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.chart-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+}

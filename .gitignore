@@ -1,6 +1,7 @@
 ## Build outputs
 bin/
 obj/
+publish/
 
 ## User secrets
 .vs/
@@ -8,6 +9,13 @@ obj/
 
 ## Environment config
 .env
+
+## Deployment files
+*.zip
+PropertyWeb-Update.zip
+
+## Node modules
+node_modules/
 
 ## Misc
 *.DS_Store

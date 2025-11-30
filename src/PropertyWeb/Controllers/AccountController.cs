@@ -3,6 +3,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PropertyWeb.Data;
@@ -38,8 +39,22 @@ public class AccountController : Controller
             return View(model);
         }
 
-        var passwordHash = Hash_password(model.Password);
-        var user = await _db.User_set.FirstOrDefaultAsync(x => x.Email == model.Email && x.Password_hash == passwordHash);
+        User_account? user = null;
+
+        try
+        {
+            // Try to authenticate from database
+            var passwordHash = Hash_password(model.Password);
+            user = await _db.User_set.FirstOrDefaultAsync(x => x.Email == model.Email && x.Password_hash == passwordHash);
+        }
+        catch
+        {
+            // Database connection failed - use development mode test accounts
+            if (HttpContext.RequestServices.GetRequiredService<IWebHostEnvironment>().IsDevelopment())
+            {
+                user = GetDevelopmentTestUser(model.Email, model.Password);
+            }
+        }
 
         if (user == null)
         {
@@ -61,6 +76,36 @@ public class AccountController : Controller
         }
 
         return RedirectToAction("Index", "Dashboard");
+    }
+
+    private User_account? GetDevelopmentTestUser(string email, string password)
+    {
+        // Development mode test accounts (only works when database is unavailable)
+        // These are hardcoded for frontend development only
+        var testUsers = new Dictionary<string, (string password, string role, string name)>
+        {
+            { "admin@test.com", ("Admin123!", "admin", "Test Admin") },
+            { "owner@test.com", ("Owner123!", "owner", "Test Owner") },
+            { "worker@test.com", ("Worker123!", "worker", "Test Worker") }
+        };
+
+        if (testUsers.TryGetValue(email.ToLowerInvariant(), out var userInfo))
+        {
+            if (userInfo.password == password)
+            {
+                return new User_account
+                {
+                    Id = Guid.NewGuid(),
+                    Email = email,
+                    User_name = userInfo.name,
+                    Role = userInfo.role,
+                    Password_hash = Hash_password(password),
+                    Created_at = DateTime.UtcNow
+                };
+            }
+        }
+
+        return null;
     }
 
     [HttpPost]

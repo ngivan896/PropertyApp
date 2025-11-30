@@ -2,7 +2,7 @@
 
 @{
     ViewData["Title"] = "Tickets";
-    Layout = "_AppLayout";
+    Layout = "_AdminLayout";
 }
 
 <div class="container py-5">
@@ -30,6 +30,7 @@
                     <tr>
                         <th>Created</th>
                         <th>Title</th>
+                        <th>Description</th>
                         <th>Status</th>
                         <th>Owner</th>
                         <th>Assigned to</th>
@@ -53,11 +54,13 @@
                     <tr>
                         <td>@ticket.Created_at.ToString("yyyy-MM-dd HH:mm")</td>
                         <td>@ticket.Title</td>
+                        <td>@(string.IsNullOrWhiteSpace(ticket.Description) ? "-" : (ticket.Description.Length > 50 ? ticket.Description.Substring(0, 50) + "..." : ticket.Description))</td>
                         <td><span class="@statusClass">@ticket.Status</span></td>
                         <td>@ticket.Owner?.User_name ?? "-"</td>
                         <td>@ticket.Assigned_user?.User_name ?? "-"</td>
                         <td>@ticket.Property?.Address_line ?? "-"</td>
                         <td class="text-end">
+                            <a asp-action="ViewTicket" asp-route-id="@ticket.Id" class="btn btn-primary btn-sm">View</a>
                             <a asp-action="EditTicket" asp-route-id="@ticket.Id" class="btn btn-outline-secondary btn-sm">Edit</a>
                         </td>
                     </tr>

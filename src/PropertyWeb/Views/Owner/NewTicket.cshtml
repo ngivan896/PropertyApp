@@ -1,40 +1,162 @@
 @model PropertyWeb.Models.OwnerCreateTicketViewModel
 
 @{
-    ViewData["Title"] = "New ticket";
-    Layout = "_AppLayout";
+    ViewData["Title"] = "New Ticket";
+    Layout = "_OwnerLayout";
 }
 
-<div class="container py-5">
-    <h1 class="h4 mb-4">Submit repair ticket</h1>
-
-    <form asp-action="NewTicket" method="post" class="col-md-6">
-        <div class="mb-3">
-            <label asp-for="PropertyId" class="form-label">Property</label>
-            <select asp-for="PropertyId" class="form-select">
-                <option value="">-- Select property --</option>
-                @foreach (var p in Model.PropertyOptions)
-                {
-                    <option value="@p.Id">@p.Address_line @if (!string.IsNullOrWhiteSpace(p.Unit_label)) { @($" (Unit {p.Unit_label})") }</option>
-                }
-            </select>
-            <span asp-validation-for="PropertyId" class="text-danger small"></span>
-        </div>
-
-        <div class="mb-3">
-            <label asp-for="Title" class="form-label">Title</label>
-            <input asp-for="Title" class="form-control" />
-            <span asp-validation-for="Title" class="text-danger small"></span>
-        </div>
-
-        <div class="mb-3">
-            <label asp-for="Description" class="form-label">Description (optional)</label>
-            <textarea asp-for="Description" class="form-control" rows="4"></textarea>
-        </div>
-
-        <button type="submit" class="btn btn-primary">Submit ticket</button>
-        <a asp-action="MyTickets" class="btn btn-link">Back to tickets</a>
-    </form>
+<div class="dashboard-header">
+    <h1 class="dashboard-title">Submit New Ticket</h1>
+    <p class="dashboard-subtitle">Create a new repair ticket for your property.</p>
 </div>
 
+<div class="data-table">
+    <div class="table-header">
+        <div class="table-title">Ticket Details</div>
+    </div>
+    <div style="padding: 24px; max-width: 600px;">
+        <form asp-action="NewTicket" method="post">
+            @Html.AntiForgeryToken()
+            <input asp-for="DraftTicketId" type="hidden" />
+            <input asp-for="UploadedImageKey" type="hidden" />
+            <input asp-for="UploadedImageBucket" type="hidden" />
+            <div style="margin-bottom: 20px;">
+                <label asp-for="PropertyId" style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--admin-text);">Property</label>
+                <select asp-for="PropertyId" class="form-select" style="padding: 12px; border-radius: 10px; border: 1px solid var(--admin-border); font-size: 14px;">
+                    <option value="">-- Select property --</option>
+                    @foreach (var p in Model.PropertyOptions)
+                    {
+                        <option value="@p.Id">@p.Address_line @if (!string.IsNullOrWhiteSpace(p.Unit_label)) { @($" (Unit {p.Unit_label})") }</option>
+                    }
+                </select>
+                <span asp-validation-for="PropertyId" class="text-danger small"></span>
+            </div>
 
+            <div style="margin-bottom: 20px;">
+                <label asp-for="Title" style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--admin-text);">Title</label>
+                <input asp-for="Title" class="form-control" style="padding: 12px; border-radius: 10px; border: 1px solid var(--admin-border); font-size: 14px;" />
+                <span asp-validation-for="Title" class="text-danger small"></span>
+            </div>
+
+            <div style="margin-bottom: 24px;">
+                <label asp-for="Description" style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--admin-text);">Description (optional)</label>
+                <textarea asp-for="Description" class="form-control" rows="4" style="padding: 12px; border-radius: 10px; border: 1px solid var(--admin-border); font-size: 14px;"></textarea>
+            </div>
+
+            <div style="margin-bottom: 24px;">
+                <label style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--admin-text);">Attach photo (optional)</label>
+                <input type="file" id="ticket-image-file" accept="image/*" class="form-control" style="padding: 12px; border-radius: 10px; border: 1px solid var(--admin-border); font-size: 14px;" />
+                <p class="text-muted small" style="margin-top: 8px;">Select an image and click “Upload photo” to send it directly to S3.</p>
+                <button type="button" id="ticket-image-upload-btn" class="btn-outline" style="margin-top: 12px;">Upload photo</button>
+                <div id="upload-status" class="text-muted small" style="margin-top: 8px;">No photo uploaded.</div>
+            </div>
+
+            <div style="display: flex; gap: 12px;">
+                <button type="submit" class="btn-primary">Submit Ticket</button>
+                <a asp-action="MyTickets" class="btn-outline">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (() => {
+            const uploadBtn = document.getElementById('ticket-image-upload-btn');
+            if (!uploadBtn) return;
+
+            const fileInput = document.getElementById('ticket-image-file');
+            const propertySelect = document.getElementById('PropertyId');
+            const statusEl = document.getElementById('upload-status');
+            const draftTicketInput = document.getElementById('DraftTicketId');
+            const imageKeyInput = document.getElementById('UploadedImageKey');
+            const imageBucketInput = document.getElementById('UploadedImageBucket');
+            const antiForgeryField = document.querySelector('input[name="__RequestVerificationToken"]');
+            const requestUrl = '@Url.Action("RequestTicketImageUpload", "Owner")';
+
+            const setStatus = (message, isError = false) => {
+                if (!statusEl) return;
+                statusEl.textContent = message;
+                statusEl.style.color = isError ? '#dc3545' : '#6c757d';
+            };
+
+            uploadBtn.addEventListener('click', async (evt) => {
+                evt.preventDefault();
+
+                if (!propertySelect?.value) {
+                    setStatus('Please select a property before uploading.', true);
+                    return;
+                }
+
+                if (!fileInput?.files?.length) {
+                    setStatus('Please choose an image to upload.', true);
+                    return;
+                }
+
+                if (!antiForgeryField) {
+                    setStatus('Missing anti-forgery token.', true);
+                    return;
+                }
+
+                const file = fileInput.files[0];
+                const payload = {
+                    ticketId: draftTicketInput?.value,
+                    propertyId: propertySelect.value,
+                    fileName: file.name,
+                    contentType: file.type || 'application/octet-stream'
+                };
+
+                setStatus('Requesting upload URL...');
+                uploadBtn.disabled = true;
+
+                try {
+                    const presignResponse = await fetch(requestUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': antiForgeryField.value
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!presignResponse.ok) {
+                        throw new Error('Failed to request pre-signed URL.');
+                    }
+
+                    const presignData = await presignResponse.json();
+                    console.log('Presigned URL response:', presignData);
+                    
+                    if (!presignData.uploadUrl) {
+                        throw new Error('No uploadUrl in response');
+                    }
+                    
+                    setStatus('Uploading photo to S3...');
+                    console.log('Uploading to URL:', presignData.uploadUrl);
+
+                    const uploadResponse = await fetch(presignData.uploadUrl, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': file.type || 'application/octet-stream'
+                        },
+                        body: file
+                    });
+
+                    if (!uploadResponse.ok) {
+                        const errorText = await uploadResponse.text();
+                        console.error('S3 upload failed:', uploadResponse.status, errorText);
+                        throw new Error(`Upload to S3 failed: ${uploadResponse.status} ${uploadResponse.statusText}`);
+                    }
+
+                    if (imageKeyInput) imageKeyInput.value = presignData.key;
+                    if (imageBucketInput) imageBucketInput.value = presignData.bucket;
+                    setStatus('Photo uploaded successfully. You can now submit the ticket.');
+                } catch (error) {
+                    console.error(error);
+                    setStatus(error.message || 'Upload failed.', true);
+                } finally {
+                    uploadBtn.disabled = false;
+                }
+            });
+        })();
+    </script>
+}

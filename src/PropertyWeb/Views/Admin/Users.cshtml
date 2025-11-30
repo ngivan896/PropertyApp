@@ -1,0 +1,86 @@
+@model IEnumerable<PropertyWeb.Models.User_account>
+
+@{
+    ViewData["Title"] = "Users";
+    Layout = "_AdminLayout";
+
+    var total = Model.Count();
+    var admins = Model.Count(u => string.Equals(u.Role, "admin", StringComparison.OrdinalIgnoreCase));
+    var owners = Model.Count(u => string.Equals(u.Role, "owner", StringComparison.OrdinalIgnoreCase));
+    var workers = Model.Count(u => string.Equals(u.Role, "worker", StringComparison.OrdinalIgnoreCase));
+}
+
+<div class="dashboard-header">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h1 class="dashboard-title">User Management</h1>
+            <p class="dashboard-subtitle">Manage admin, owner, and worker accounts.</p>
+        </div>
+        <a asp-action="CreateUser" class="btn-primary">Create User</a>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="dashboard-grid">
+    <div class="stat-card">
+        <div class="stat-label">Total Users</div>
+        <div class="stat-value">@total</div>
+        <div class="stat-change positive">All accounts</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Admins</div>
+        <div class="stat-value">@admins</div>
+        <div class="stat-change positive">Administrators</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Owners</div>
+        <div class="stat-value">@owners</div>
+        <div class="stat-change positive">Property owners</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Workers</div>
+        <div class="stat-value">@workers</div>
+        <div class="stat-change positive">Technicians</div>
+    </div>
+</div>
+
+<!-- Users Table -->
+<div class="data-table">
+    <div class="table-header">
+        <div class="table-title">All Users</div>
+    </div>
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Email</th>
+                    <th>Name</th>
+                    <th>Role</th>
+                    <th>Phone</th>
+                    <th>Created At</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in Model)
+                {
+                    var roleLower = (user.Role ?? string.Empty).ToLowerInvariant();
+                    var badgeClass = roleLower switch
+                    {
+                        "admin" => "danger",
+                        "worker" => "warning",
+                        "owner" => "primary",
+                        _ => "secondary"
+                    };
+                    <tr>
+                        <td>@user.Email</td>
+                        <td>@user.User_name</td>
+                        <td><span class="badge badge-@badgeClass">@user.Role</span></td>
+                        <td>@(user.Phone ?? "-")</td>
+                        <td>@user.Created_at.ToString("yyyy-MM-dd HH:mm")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+

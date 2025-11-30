@@ -1,37 +1,46 @@
 @model PropertyWeb.Models.OwnerProfileViewModel
 
 @{
-    ViewData["Title"] = "My profile";
-    Layout = "_AppLayout";
+    ViewData["Title"] = "My Profile";
+    Layout = "_OwnerLayout";
 }
 
-<div class="container py-5">
-    <h1 class="h4 mb-4">My profile</h1>
+<div class="dashboard-header">
+    <h1 class="dashboard-title">My Profile</h1>
+    <p class="dashboard-subtitle">View your account details and properties.</p>
+</div>
 
-    <div class="row g-4">
-        <div class="col-md-4">
-            <div class="card shadow-sm h-100">
-                <div class="card-body">
-                    <h5 class="card-title mb-3">Account details</h5>
-                    <p class="mb-2"><strong>Name</strong><br />@Model.User.User_name</p>
-                    <p class="mb-2"><strong>Email</strong><br />@Model.User.Email</p>
-                    <p class="mb-0"><strong>Phone</strong><br />@Model.User.Phone ?? "-"</p>
-                </div>
+<div class="dashboard-grid" style="grid-template-columns: 1fr 2fr;">
+    <div class="data-table">
+        <div class="table-header">
+            <div class="table-title">Account Details</div>
+        </div>
+        <div style="padding: 24px;">
+            <div style="margin-bottom: 20px;">
+                <strong>Name:</strong><br />
+                <span>@Model.User.User_name</span>
+            </div>
+            <div style="margin-bottom: 20px;">
+                <strong>Email:</strong><br />
+                <span>@Model.User.Email</span>
+            </div>
+            <div style="margin-bottom: 20px;">
+                <strong>Phone:</strong><br />
+                <span>@(Model.User.Phone ?? "-")</span>
+            </div>
+            <div style="padding-top: 20px; border-top: 1px solid var(--admin-border);">
+                <strong>Properties:</strong> @Model.Properties.Count()<br />
+                <strong>Tickets:</strong> @Model.TicketCount
             </div>
         </div>
-        <div class="col-md-8">
-            <div class="card shadow-sm mb-3">
-                <div class="card-body">
-                    <h5 class="card-title mb-3">Overview</h5>
-                    <p class="mb-1">Properties registered: <strong>@Model.Properties.Count()</strong></p>
-                    <p class="mb-0">Tickets submitted: <strong>@Model.TicketCount</strong></p>
-                </div>
-            </div>
+    </div>
 
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title mb-3">My properties</h5>
-                    <table class="table table-sm table-striped align-middle mb-0">
+    <div class="data-table">
+        <div class="table-header">
+            <div class="table-title">My Properties</div>
+        </div>
+        <div class="table-wrapper">
+            <table>
                         <thead>
                             <tr>
                                 <th>Created</th>
@@ -49,9 +58,7 @@
                             </tr>
                         }
                         </tbody>
-                    </table>
-                </div>
-            </div>
+            </table>
         </div>
     </div>
 </div>
