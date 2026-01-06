@@ -7,7 +7,7 @@
 
 ## Setup
 1. `git clone <repo>` and `cd Property App`
-2. Copy `env.template` to `.env` at the project root and fill in AWS RDS/S3/SNS/SQS details (current configuration expects SQL Server on RDS).
+2. Copy `env.template` to `.env` at the project root and fill in AWS RDS/S3/SNS/SQS details (SQL Server on RDS). For RDS you can set `DB_CONNECTION_STRING` or the discrete vars `DB_HOST/DB_NAME/DB_USER/DB_PASSWORD`.
 3. Restore dependencies: `dotnet restore src/PropertyApp.sln`
 4. Run the site: `dotnet watch --project src/PropertyWeb/PropertyWeb.csproj`
 
@@ -33,3 +33,9 @@
   - `dotnet ef migrations add InitialCreate --project src/PropertyWeb/PropertyWeb.csproj`
   - `dotnet ef database update --project src/PropertyWeb/PropertyWeb.csproj`
 
+dotnet watch --project src/PropertyWeb/PropertyWeb.csproj -- run localhost
+
+
+ cd "G:\My Drive\Degree Year 3\Sem2\Cloud\Property App"
+ $env:ASPNETCORE_URLS="http://localhost:5182"
+ dotnet run --project src/PropertyWeb/PropertyWeb.csproj

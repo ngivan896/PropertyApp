@@ -123,16 +123,38 @@ static void Load_env_file(string content_root)
 
 static void Configure_database(WebApplicationBuilder builder)
 {
-    // Use a fixed RDS SQL Server connection string in all environments.
-    // This avoids falling back to the in-memory database, which would lose data on restart.
-    var connection_string =
-        "Server=property-mvp-db.cmaeqsfg0eds.us-east-1.rds.amazonaws.com,1433;" +
-        "Database=property-mvp-db;" +
-        "User Id=admin;" +
-        "Password=ivanng1009;" +
-        "Encrypt=False;" +
-        "TrustServerCertificate=True;";
+    // Prefer environment-driven configuration so we can switch RDS instances per account.
+    var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
+
+    if (string.IsNullOrWhiteSpace(connectionString))
+    {
+        // Build from discrete env vars if full connection string not supplied
+        var host = Environment.GetEnvironmentVariable("DB_HOST");
+        var port = Environment.GetEnvironmentVariable("DB_PORT") ?? "1433";
+        var database = Environment.GetEnvironmentVariable("DB_NAME");
+        var user = Environment.GetEnvironmentVariable("DB_USER");
+        var password = Environment.GetEnvironmentVariable("DB_PASSWORD");
+        var encrypt = Environment.GetEnvironmentVariable("DB_ENCRYPT") ?? "False";
+        var trustCert = Environment.GetEnvironmentVariable("DB_TRUST_SERVER_CERTIFICATE") ?? "True";
+
+        if (string.IsNullOrWhiteSpace(host) ||
+            string.IsNullOrWhiteSpace(database) ||
+            string.IsNullOrWhiteSpace(user) ||
+            string.IsNullOrWhiteSpace(password))
+        {
+            throw new InvalidOperationException(
+                "Database configuration missing. Set DB_CONNECTION_STRING or DB_HOST/DB_NAME/DB_USER/DB_PASSWORD.");
+        }
+
+        connectionString =
+            $"Server={host},{port};" +
+            $"Database={database};" +
+            $"User Id={user};" +
+            $"Password={password};" +
+            $"Encrypt={encrypt};" +
+            $"TrustServerCertificate={trustCert};";
+    }
 
     builder.Services.AddDbContext<Application_context>(options =>
-        options.UseSqlServer(connection_string));
+        options.UseSqlServer(connectionString));
 }

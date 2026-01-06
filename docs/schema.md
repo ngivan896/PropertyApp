@@ -144,14 +144,3 @@ VALUES
  'Aircon leaking', 'Water dripping from AC vent', 'assigned', 'high');
 ```
 
-## Seeding Plan
-- Default admin account with temporary password.
-- Two sample owners + properties.
-- Two technicians.
-- At least three repair tickets to demonstrate dashboard statistics.
-
-## Next Actions
-1. Confirm RDS engine/version → update `.env` `DB_PROVIDER`.
-2. Run the SQL DDL once the endpoint is available.
-3. Scaffold EF Core entities and migrations to stay in sync with the physical schema.
-

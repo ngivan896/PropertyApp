@@ -1,4 +1,3 @@
--- Add ticket_messages table for chat functionality
 IF OBJECT_ID('dbo.ticket_messages', 'U') IS NOT NULL 
     DROP TABLE dbo.ticket_messages;
 
