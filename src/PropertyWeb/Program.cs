@@ -10,6 +10,7 @@ using Amazon.S3;
 using Amazon;
 using Amazon.Runtime;
 using Microsoft.Extensions.Options;
+using System.Net.Http;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -77,8 +78,11 @@ if (!string.IsNullOrWhiteSpace(bucketName))
 
 // Add HttpClient for API Gateway fallback (optional)
 // Configure TicketImageService with proper dependency injection
-builder.Services.AddHttpClient<ITicketImageService, TicketImageService>((sp, httpClient) =>
+builder.Services.AddHttpClient();
+builder.Services.AddScoped<ITicketImageService>(sp =>
 {
+    var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
+    var httpClient = httpClientFactory.CreateClient();
     var options = sp.GetRequiredService<IOptions<TicketImageApiOptions>>();
     var logger = sp.GetRequiredService<ILogger<TicketImageService>>();
     var s3Client = sp.GetService<IAmazonS3>(); // Get S3 client if registered
