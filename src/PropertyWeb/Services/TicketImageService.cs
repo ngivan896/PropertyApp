@@ -62,6 +62,16 @@ public class TicketImageService : ITicketImageService
         _options = options.Value;
         _logger = logger;
         _s3Client = s3Client;
+        
+        // Log initialization status for debugging
+        if (_s3Client == null)
+        {
+            _logger.LogWarning("TicketImageService initialized without S3 Client. BucketName: {BucketName}", _options.BucketName);
+        }
+        else
+        {
+            _logger.LogInformation("TicketImageService initialized with S3 Client. BucketName: {BucketName}", _options.BucketName);
+        }
     }
 
     public async Task<TicketImageUploadResponse?> RequestUploadUrlAsync(
@@ -222,7 +232,9 @@ public class TicketImageService : ITicketImageService
 
         if (_s3Client == null || string.IsNullOrWhiteSpace(_options.BucketName))
         {
-            _logger.LogWarning("S3 client or bucket name not configured, returning original URL");
+            _logger.LogError("S3 client or bucket name not configured. S3Client is null: {IsNull}, BucketName: {BucketName}", 
+                _s3Client == null, _options.BucketName);
+            _logger.LogWarning("Returning original URL, which may cause AccessDenied errors");
             return imageUrl; // Return original URL if we can't generate presigned URL
         }
 
@@ -247,7 +259,8 @@ public class TicketImageService : ITicketImageService
             };
 
             var presignedUrl = _s3Client.GetPreSignedURL(request);
-            _logger.LogInformation("Successfully generated presigned view URL for key: {Key}", key);
+            _logger.LogInformation("Successfully generated presigned view URL for key: {Key}, expires in {ExpiresIn} seconds", 
+                key, expiresInSeconds);
             return presignedUrl;
         }
         catch (Exception ex)

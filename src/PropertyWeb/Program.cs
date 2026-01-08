@@ -9,10 +9,26 @@ using PropertyWeb.Services;
 using Amazon.S3;
 using Amazon;
 using Amazon.Runtime;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
 Load_env_file(builder.Environment.ContentRootPath);
+
+// Debug: Log credential loading status
+var accessKey = Environment.GetEnvironmentVariable("AWS_ACCESS_KEY_ID");
+var sessionToken = Environment.GetEnvironmentVariable("AWS_SESSION_TOKEN");
+if (!string.IsNullOrWhiteSpace(accessKey))
+{
+    var tokenPrefix = sessionToken?.Substring(0, Math.Min(30, sessionToken.Length)) ?? "N/A";
+    Console.WriteLine($"[AWS Credentials] Access Key loaded: {accessKey.Substring(0, Math.Min(10, accessKey.Length))}...");
+    Console.WriteLine($"[AWS Credentials] Session Token prefix: {tokenPrefix}...");
+}
+else
+{
+    Console.WriteLine("[AWS Credentials] WARNING: AWS_ACCESS_KEY_ID not found in environment variables!");
+}
+
 Configure_database(builder);
 
 // Add services to the container.
@@ -30,16 +46,45 @@ if (!string.IsNullOrWhiteSpace(bucketName))
 {
     var region = RegionEndpoint.GetBySystemName(awsRegion);
     
-    // AWS SDK will automatically try to get credentials from:
-    // 1. Environment variables (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_SESSION_TOKEN)
-    // 2. AWS credentials file (~/.aws/credentials)
-    // 3. EC2 instance role (if running on EC2)
-    // If credentials are not found, it will throw an exception when used
-    builder.Services.AddSingleton<IAmazonS3>(sp => new AmazonS3Client(region));
+    // Create S3 client with explicit credentials from environment variables
+    // This ensures we always use the latest credentials from .env file
+    builder.Services.AddScoped<IAmazonS3>(sp =>
+    {
+        var accessKey = Environment.GetEnvironmentVariable("AWS_ACCESS_KEY_ID");
+        var secretKey = Environment.GetEnvironmentVariable("AWS_SECRET_ACCESS_KEY");
+        var sessionToken = Environment.GetEnvironmentVariable("AWS_SESSION_TOKEN");
+        
+        if (!string.IsNullOrWhiteSpace(accessKey) && !string.IsNullOrWhiteSpace(secretKey))
+        {
+            // Use explicit credentials from environment variables
+            AWSCredentials credentials;
+            if (!string.IsNullOrWhiteSpace(sessionToken))
+            {
+                credentials = new Amazon.Runtime.SessionAWSCredentials(accessKey, secretKey, sessionToken);
+            }
+            else
+            {
+                credentials = new Amazon.Runtime.BasicAWSCredentials(accessKey, secretKey);
+            }
+            
+            return new AmazonS3Client(credentials, region);
+        }
+        
+        // Fallback to default credential chain
+        return new AmazonS3Client(region);
+    });
 }
 
 // Add HttpClient for API Gateway fallback (optional)
-builder.Services.AddHttpClient<ITicketImageService, TicketImageService>();
+// Configure TicketImageService with proper dependency injection
+builder.Services.AddHttpClient<ITicketImageService, TicketImageService>((sp, httpClient) =>
+{
+    var options = sp.GetRequiredService<IOptions<TicketImageApiOptions>>();
+    var logger = sp.GetRequiredService<ILogger<TicketImageService>>();
+    var s3Client = sp.GetService<IAmazonS3>(); // Get S3 client if registered
+    
+    return new TicketImageService(httpClient, options, logger, s3Client);
+});
 
 builder.Services
     .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
